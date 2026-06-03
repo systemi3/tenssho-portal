@@ -1,20 +1,24 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import type { Status, StatusHistory } from '@/types'
+import type { Building, Status, StatusHistory } from '@/types'
 import StatusUpdateButton from '@/components/StatusUpdateButton'
 import PredictButton from '@/components/PredictButton'
+
+export const dynamic = 'force-dynamic'
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const { data: building, error: buildingError } = await supabase
+  const { data: buildingData, error: buildingError } = await supabase
     .from('buildings')
     .select('*')
     .eq('id', id)
     .single()
 
-  if (buildingError || !building) redirect('/')
+  if (buildingError || !buildingData) redirect('/')
+
+  const building = buildingData as Building
 
   const { data: statuses, error: statusError } = await supabase
     .from('statuses')
@@ -77,7 +81,13 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                           </span>
                           <span className="text-sm text-gray-800 truncate">{s.item}</span>
                         </div>
-                        <StatusUpdateButton statusId={s.id} currentStatus={s.status} />
+                        <StatusUpdateButton
+                          statusId={s.id}
+                          buildingId={building.id}
+                          category={s.category}
+                          item={s.item}
+                          currentStatus={s.status}
+                        />
                       </div>
                     ))}
                   </div>

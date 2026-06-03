@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import type { Building } from '@/types'
 
+export const dynamic = 'force-dynamic'
+
 async function getBuildings(): Promise<Building[]> {
   const { data, error } = await supabase
     .from('buildings')

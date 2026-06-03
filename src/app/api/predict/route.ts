@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { supabase } from '@/lib/supabase'
+import type { Status, StatusHistory } from '@/types'
+
+export const dynamic = 'force-dynamic'
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
@@ -10,22 +13,26 @@ export async function POST(request: NextRequest) {
   const { buildingId, buildingName } = await request.json()
 
   // 履歴を取得
-  const { data: history, error } = await supabase
+  const { data: historyData, error } = await supabase
     .from('status_history')
     .select('*')
     .eq('building_id', buildingId)
     .order('changed_at', { ascending: false })
     .limit(10)
 
-  if (error || !history) {
+  if (error || !historyData) {
     return NextResponse.json({ error: '履歴の取得に失敗しました' }, { status: 500 })
   }
 
+  const history = historyData as StatusHistory[]
+
   // 現在の状態を取得
-  const { data: statuses } = await supabase
+  const { data: statusesData } = await supabase
     .from('statuses')
     .select('*')
     .eq('building_id', buildingId)
+
+  const statuses = statusesData as Status[] | null
 
   // プロンプト構築
   const historyText = history.map(h =>

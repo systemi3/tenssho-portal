@@ -1,18 +1,22 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import type { Status } from '@/types'
+import type { Building, Status } from '@/types'
+
+export const dynamic = 'force-dynamic'
 
 export default async function ResidentBuildingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const { data: building, error: buildingError } = await supabase
+  const { data: buildingData, error: buildingError } = await supabase
     .from('buildings')
     .select('*')
     .eq('id', id)
     .single()
 
-  if (buildingError || !building) redirect('/resident')
+  if (buildingError || !buildingData) redirect('/resident')
+
+  const building = buildingData as Building
 
   const { data: statuses, error: statusError } = await supabase
     .from('statuses')

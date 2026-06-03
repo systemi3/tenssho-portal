@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     .select('*')
     .eq('building_id', buildingId)
     .order('changed_at', { ascending: false })
-    .limit(10)
+    .limit(20)
 
   if (error || !historyData) {
     return NextResponse.json({ error: '履歴の取得に失敗しました' }, { status: 500 })
@@ -35,33 +35,63 @@ export async function POST(request: NextRequest) {
   const statuses = statusesData as Status[] | null
 
   // プロンプト構築
-  const historyText = history.map(h =>
-    `[${h.changed_at}] ${h.category} / ${h.item}: ${h.status}${h.memo ? ` (${h.memo})` : ''}`
-  ).join('\n')
+  const historyText = history.length > 0
+    ? history.map(h =>
+        `[${h.changed_at}] ${h.category} / ${h.item}: ${h.status}${h.memo ? ` (${h.memo})` : ''}`
+      ).join('\n')
+    : '（履歴なし）'
 
-  const currentText = statuses?.map(s =>
-    `${s.category} / ${s.item}: ${s.status}`
-  ).join('\n') ?? 'データなし'
+  const currentText = statuses && statuses.length > 0
+    ? statuses.map(s => `${s.category} / ${s.item}: ${s.status}`).join('\n')
+    : '（データなし）'
 
-  const prompt = `あなたはビル管理の専門家です。以下のビルの状態履歴と現在の状態をもとに、今後起こりうる事象を予測し、対応アドバイスを日本語で簡潔に提供してください。
+  const prompt = `あなたはビル管理の専門家です。以下のビルの情報をもとに分析してください。
 
 【ビル名】${buildingName}
 
 【現在の状態】
 ${currentText}
 
-【過去の変化履歴（直近10件）】
+【過去の変化履歴（直近20件）】
 ${historyText}
 
-予測と対応アドバイスを200字程度でまとめてください。`
+以下の3項目を日本語で回答してください。
 
-  const message = await client.messages.create({
-    model: 'claude-sonnet-4-5',
+## 予測される事象
+現在の状態と履歴のパターンから、近い将来に起こりうる問題や注意点を具体的に記述してください。
+
+## 推奨アクション
+今すぐ・または近日中に取るべき対応を箇条書きで記述してください。
+
+## 緊急度
+「高・中・低」のいずれかで判定し、その理由を一文で記述してください。`
+
+  // ストリーミングで返す
+  const stream = client.messages.stream({
+    model: 'claude-sonnet-4-6',
     max_tokens: 1024,
     messages: [{ role: 'user', content: prompt }],
   })
 
-  const prediction = message.content[0].type === 'text' ? message.content[0].text : ''
+  const readable = new ReadableStream({
+    async start(controller) {
+      const encoder = new TextEncoder()
+      try {
+        for await (const chunk of stream) {
+          if (
+            chunk.type === 'content_block_delta' &&
+            chunk.delta.type === 'text_delta'
+          ) {
+            controller.enqueue(encoder.encode(chunk.delta.text))
+          }
+        }
+      } finally {
+        controller.close()
+      }
+    },
+  })
 
-  return NextResponse.json({ prediction })
+  return new Response(readable, {
+    headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+  })
 }

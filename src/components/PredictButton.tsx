@@ -17,20 +17,42 @@ export default function PredictButton({ buildingId, buildingName }: Props) {
     setError(null)
     setPrediction(null)
 
-    const res = await fetch('/api/predict', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ buildingId, buildingName }),
-    })
-
-    const data = await res.json()
-    setLoading(false)
-
-    if (data.error) {
-      setError(data.error)
+    let res: Response
+    try {
+      res = await fetch('/api/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ buildingId, buildingName }),
+      })
+    } catch {
+      setError('ネットワークエラーが発生しました')
+      setLoading(false)
       return
     }
-    setPrediction(data.prediction)
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      setError((data as { error?: string }).error ?? '予測に失敗しました')
+      setLoading(false)
+      return
+    }
+
+    const reader = res.body?.getReader()
+    if (!reader) {
+      setError('ストリームの取得に失敗しました')
+      setLoading(false)
+      return
+    }
+
+    const decoder = new TextDecoder()
+    setLoading(false)
+    setPrediction('')
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      setPrediction((prev) => (prev ?? '') + decoder.decode(value, { stream: true }))
+    }
   }
 
   return (
@@ -42,20 +64,31 @@ export default function PredictButton({ buildingId, buildingName }: Props) {
         </div>
         <button
           onClick={handlePredict}
-          disabled={loading}
+          disabled={loading || prediction !== null}
           className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium
                      hover:bg-blue-700 disabled:opacity-40 transition-colors"
         >
-          {loading ? '予測中...' : '予測を見る'}
+          {loading ? '分析中...' : prediction !== null ? '予測済み' : '予測を見る'}
         </button>
       </div>
       {error && (
         <p className="text-sm text-red-500">{error}</p>
       )}
-      {prediction && (
+      {prediction !== null && (
         <div className="mt-3 p-4 bg-blue-50 rounded-lg">
-          <p className="text-sm text-gray-800 whitespace-pre-wrap">{prediction}</p>
+          <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">{prediction}</p>
+          {prediction === '' && (
+            <span className="inline-block w-1.5 h-4 bg-blue-400 animate-pulse ml-0.5" />
+          )}
         </div>
+      )}
+      {prediction !== null && (
+        <button
+          onClick={() => { setPrediction(null); setError(null) }}
+          className="mt-2 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          閉じる
+        </button>
       )}
     </div>
   )

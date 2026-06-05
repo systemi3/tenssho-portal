@@ -69,7 +69,11 @@ export default function StatusUpdateButton({ statusId, buildingId, category, ite
         <select
           value={selected}
           onChange={(e) => setSelected(e.target.value as StatusValue)}
-          className="text-xs border border-gray-300 rounded px-2 py-1 bg-white"
+          className={`text-xs border rounded px-2 py-1 font-medium cursor-pointer ${
+            selected === '正常'   ? 'bg-green-100 text-green-800 border-green-300' :
+            selected === '異常'   ? 'bg-red-100 text-red-800 border-red-300' :
+                                    'bg-yellow-100 text-yellow-800 border-yellow-300'
+          }`}
         >
           <option value="正常">正常</option>
           <option value="異常">異常</option>
@@ -89,7 +93,7 @@ export default function StatusUpdateButton({ statusId, buildingId, category, ite
         value={memo}
         onChange={(e) => setMemo(e.target.value)}
         placeholder="メモ（任意）"
-        className="text-xs border border-gray-200 rounded px-2 py-1 w-48 bg-white placeholder-gray-300"
+        className="text-sm border border-gray-400 rounded px-2 py-1 w-48 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500"
       />
       {message && (
         <p className={`text-xs ${message.startsWith('エラー') ? 'text-red-500' : 'text-green-600'}`}>

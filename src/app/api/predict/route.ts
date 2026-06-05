@@ -3,7 +3,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { supabase } from '@/lib/supabase'
 import type { Status, StatusHistory } from '@/types'
 
-export const dynamic = 'force-dynamic'
+export const runtime = 'edge'
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,

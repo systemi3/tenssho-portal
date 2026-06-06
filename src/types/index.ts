@@ -1,3 +1,42 @@
+// 掲示板カテゴリ
+export type BoardCategory = {
+  id: string
+  name: string
+  order_no: number | null
+  created_at: string
+}
+
+// 掲示板スレッド
+export type BoardThread = {
+  id: string
+  category_id: string | null
+  title: string
+  body: string
+  user_id: string | null
+  created_at: string
+}
+
+// 掲示板返信
+export type BoardReply = {
+  id: string
+  thread_id: string | null
+  body: string
+  user_id: string | null
+  created_at: string
+}
+
+// ロール一覧
+export type Role = 'admin_a' | 'admin_b' | 'admin_c' | 'cleaner' | 'chairman' | 'resident'
+
+// ユーザープロフィール
+export type Profile = {
+  id: string
+  name: string
+  role: Role
+  room_no: string | null
+  created_at: string
+}
+
 // ステータスの選択肢
 export type StatusValue = '正常' | '異常' | '対応中'
 
@@ -39,17 +78,46 @@ export type Database = {
         Row: Building
         Insert: Omit<Building, 'id'>
         Update: Partial<Omit<Building, 'id'>>
+        Relationships: []
       }
       statuses: {
         Row: Status
         Insert: Omit<Status, 'id' | 'updated_at'>
         Update: Partial<Omit<Status, 'id'>>
+        Relationships: []
       }
       status_history: {
         Row: StatusHistory
         Insert: Omit<StatusHistory, 'id' | 'changed_at'>
         Update: never
+        Relationships: []
+      }
+      profiles: {
+        Row: Profile
+        Insert: Omit<Profile, 'created_at'>
+        Update: Partial<Omit<Profile, 'id' | 'created_at'>>
+        Relationships: []
+      }
+      board_categories: {
+        Row: BoardCategory
+        Insert: Omit<BoardCategory, 'id' | 'created_at'>
+        Update: Partial<Omit<BoardCategory, 'id' | 'created_at'>>
+        Relationships: []
+      }
+      board_threads: {
+        Row: BoardThread
+        Insert: Omit<BoardThread, 'id' | 'created_at'>
+        Update: Partial<Omit<BoardThread, 'id' | 'created_at'>>
+        Relationships: []
+      }
+      board_replies: {
+        Row: BoardReply
+        Insert: Omit<BoardReply, 'id' | 'created_at'>
+        Update: Partial<Omit<BoardReply, 'id' | 'created_at'>>
+        Relationships: []
       }
     }
+    Views: Record<string, never>
+    Functions: Record<string, never>
   }
 }

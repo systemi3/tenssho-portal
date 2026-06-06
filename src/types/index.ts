@@ -1,3 +1,14 @@
+// お知らせ
+export type Notification = {
+  id: string
+  title: string
+  body: string
+  target_type: 'all' | 'specific'
+  target_user: string | null
+  created_by: string | null
+  created_at: string
+}
+
 // 掲示板カテゴリ
 export type BoardCategory = {
   id: string
@@ -114,6 +125,12 @@ export type Database = {
         Row: BoardReply
         Insert: Omit<BoardReply, 'id' | 'created_at'>
         Update: Partial<Omit<BoardReply, 'id' | 'created_at'>>
+        Relationships: []
+      }
+      notifications: {
+        Row: Notification
+        Insert: Omit<Notification, 'id' | 'created_at'>
+        Update: Partial<Omit<Notification, 'id' | 'created_at'>>
         Relationships: []
       }
     }

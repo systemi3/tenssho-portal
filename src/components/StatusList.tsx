@@ -15,6 +15,7 @@ const CATEGORIES = ['設備系', '清掃系', 'インシデント系', '入退�
 type Props = {
   buildingId: string
   initialStatuses: Status[]
+  canUpdate?: boolean
 }
 
 const badgeClass = (status: string) => {
@@ -24,7 +25,7 @@ const badgeClass = (status: string) => {
   return ''
 }
 
-export default function StatusList({ buildingId, initialStatuses }: Props) {
+export default function StatusList({ buildingId, initialStatuses, canUpdate = true }: Props) {
   const [statuses, setStatuses] = useState<Status[]>(initialStatuses)
 
   useEffect(() => {
@@ -72,13 +73,15 @@ export default function StatusList({ buildingId, initialStatuses }: Props) {
                         </span>
                         <span className="text-sm text-gray-800 truncate">{s.item}</span>
                       </div>
-                      <StatusUpdateButton
-                        statusId={s.id}
-                        buildingId={buildingId}
-                        category={s.category}
-                        item={s.item}
-                        currentStatus={s.status}
-                      />
+                      {canUpdate && (
+                        <StatusUpdateButton
+                          statusId={s.id}
+                          buildingId={buildingId}
+                          category={s.category}
+                          item={s.item}
+                          currentStatus={s.status}
+                        />
+                      )}
                     </div>
                   ))}
                 </div>

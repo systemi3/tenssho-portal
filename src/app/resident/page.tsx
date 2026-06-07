@@ -73,6 +73,25 @@ export default async function ResidentPage() {
           </Link>
 
           <Link
+            href="/resident/buildings"
+            className="group bg-white rounded-xl border border-gray-200 shadow-sm p-5
+                       hover:shadow-md hover:border-emerald-300 transition-all duration-200"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-gray-900 group-hover:text-emerald-700 transition-colors">
+                  ビル状態
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">設備・清掃などの現在の状態を確認する</p>
+              </div>
+              <svg className="w-4 h-4 text-gray-300 group-hover:text-emerald-400 transition-colors"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </Link>
+
+          <Link
             href="/resident/notifications"
             className="group bg-white rounded-xl border border-gray-200 shadow-sm p-5
                        hover:shadow-md hover:border-emerald-300 transition-all duration-200"
